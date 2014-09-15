@@ -11,7 +11,7 @@ XpectFile:
 ;
 
 Member:
-	Lexicalspace_Setup | Lexicalspace_Invocation | XpectIgnore
+	Lexicalspace_Setup | Lexicalspace_InvocationFM | XpectIgnore
 ;
 
 Text:
@@ -55,9 +55,18 @@ ClassLiteral:
 
 XpectIgnore:
 	{XpectIgnore} "XPECT_IGNORE";
+	
+	
+Lexicalspace_InvocationFM returns XpectInvocation : 
+	=> (  {DelegatingFixmeXpectInvocation} "FIXME" fixmedescription=AnyText delegatee=Lexicalspace_Invocation )
+	| Lexicalspace_Invocation
+;	
 
 Lexicalspace_Invocation returns XpectInvocation hidden(WS, ML_COMMENT, SL_COMMENT):
-	"XPECT" ignore?="!"? (fixme?="FIXME")? method=[xjm::XjmXpectMethod|INVOCATION];
+	// fixme?="FIXME" (fixmedescription = AnyText)? "XPECT" ignore?="!"?  method=[xjm::XjmXpectMethod|INVOCATION]
+//	fixme?="FIXME" (fixmedescription = AnyText)? "XPECT" ignore?="!"?  method=[xjm::XjmXpectMethod|INVOCATION]
+//	| 
+	"XPECT" ignore?="!"?  method=[xjm::XjmXpectMethod|INVOCATION];
 	
 AnyText:
 	ANY_OTHER+
