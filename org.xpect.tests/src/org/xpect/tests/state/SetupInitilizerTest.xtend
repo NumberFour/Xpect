@@ -1,10 +1,10 @@
 package org.xpect.tests.state
 
 import org.junit.Test
-import org.xpect.AbstractComponent
-import org.xpect.setup.SetupInitializer
 
 import static extension org.junit.Assert.*
+import org.xpect.tests.state.SetupInitializerTestData.SiT
+import org.xpect.tests.state.SetupInitializerTestData.A
 
 class SetupInitilizerTest {
 	
@@ -62,25 +62,5 @@ class SetupInitilizerTest {
 		val c = si.findConstructor(A,dbls)
 		A.assertSame( c.declaringClass )
 	}	
-	
-	static class A {
-		new (Double ...d ){}
-		new (String ...s ){}
-		new (String a, String b){}
-		new (String a, String ...s){}
-		new (Double a, String ...s){}
-	}
-	
-	static class SiT<T> extends SetupInitializer<T> {
-	
-		new(AbstractComponent rootInstance) {
-			super(rootInstance)
-		}
 		
-		override public findConstructor(Class<?> clazz, Object[] params) {
-			super.findConstructor(clazz, params)
-		}
-		
-	}	
-	
 }
