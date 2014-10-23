@@ -1,5 +1,6 @@
 package org.xpect.examples.setupcomponents;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.runner.RunWith;
@@ -46,6 +47,22 @@ public class CustomSetupTest {
 		public CustomSetupComponent(String foo, String bar) {
 			this.foo = foo;
 			this.bar = bar;
+		}
+
+		public CustomSetupComponent(String... allS) {
+			if (allS != null && allS.length > 0)
+				this.foo = allS[0];
+			else
+				this.foo = "defaultFoo";
+			
+			// Squash all additional vararg-parameters into bar. 
+			if (allS != null && allS.length > 1) {
+				Joiner j = Joiner.on("_").useForNull("<null>");
+				this.bar = j.join(Arrays.asList(allS).subList(1, allS.length));
+			} else {
+				this.bar = "defaultBar";
+			}
+
 		}
 
 		public void add(CustomSetupComponent child) {
