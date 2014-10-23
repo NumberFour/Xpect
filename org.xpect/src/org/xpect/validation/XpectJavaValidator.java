@@ -46,6 +46,8 @@ public class XpectJavaValidator extends AbstractXpectJavaValidator {
 		if (extension == null || XpectConstants.XPECT_FILE_EXT.equals(extension))
 			return;
 		ILanguageInfo languageInfo = ILanguageInfo.Registry.INSTANCE.getLanguageByFileExtension(extension);
+		if (languageInfo == null) 
+			return; // if lang not known, cannot validate classpath.
 		validateClassIsOnClasspath(languageInfo.getRuntimeModuleClass(), test);
 		if (EcorePlugin.IS_ECLIPSE_RUNNING)
 			validateClassIsOnClasspath(languageInfo.getUIModuleClass(), test);
