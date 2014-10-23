@@ -11,9 +11,9 @@ XPECT_SETUP org.xpect.examples.setupcomponents.CustomSetupTest
 		myChildren = CustomSetupComponent "childFoo3" "childBar3" {  // calls CustomSetupComponent.addMyChildren(CustomSetupComponent)
 			baz = "childBaz3"
 		}
-//		myChild = {
-//			baz = "childBaz"
-//		} 
+		myChild = CustomSetupComponent "childFoo4" "b" "c" "d" {     // calls CustomSetupComponent.setMyChild(CustomSetupComponent) using vararg-constructor
+			baz = "childBaz4"
+		} 
 	}
 END_SETUP
 
@@ -23,5 +23,6 @@ CustomSetupComponent foo=defaultFoo bar=defaultBar baz=rootBaz {
   CustomSetupComponent foo=childFoo1 bar=childBar1 baz=childBaz1
   CustomSetupComponent foo=childFoo2 bar=childBar2 baz=childBaz2
   CustomSetupComponent foo=childFoo3 bar=childBar3 baz=childBaz3
+  CustomSetupComponent foo=childFoo4 bar=b_c_d baz=childBaz4
 }
 ---

@@ -7,6 +7,7 @@
  *******************************************************************************/
 package org.xpect.setup;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -51,7 +52,18 @@ public class SetupInitializer<T> implements ISetupInitializer<T> {
 			for (int i = 0; i < val.getParameters().size(); i++)
 				params[i] = create(val.getParameters().get(i));
 			Constructor<?> constructor = findConstructor(type, params);
-			Object result = constructor.newInstance(params);
+			if( isConstructorWithSingleArrayParameter( constructor) )
+		    {
+			   // create new array from component type:
+			   Class<?> pType = constructor.getParameterTypes()[0];
+			   Class<?> cpType = pType.getComponentType();
+			   Object[] paramField = (Object[]) Array.newInstance(cpType, params.length);
+			   // move all params into new array
+			   System.arraycopy(params, 0, paramField, 0, params.length); 
+			   params = new Object[1];
+			   params[0] = paramField;
+			}
+			Object result =  constructor.newInstance(params); 
 			initialize(result, val);
 			return result;
 		} catch (InstantiationException e) {
@@ -63,6 +75,11 @@ public class SetupInitializer<T> implements ISetupInitializer<T> {
 		} catch (InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private boolean isConstructorWithSingleArrayParameter(Constructor<?> constructor) {
+		Class<?>[] types = constructor.getParameterTypes();
+		return types.length == 1 && types[0].isArray();
 	}
 
 	protected Object create(IntLiteral val) {
