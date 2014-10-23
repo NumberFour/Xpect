@@ -32,13 +32,11 @@ import org.xpect.XjmContribution;
 import org.xpect.XpectFile;
 import org.xpect.XpectJavaModel;
 import org.xpect.XpectStandaloneSetup;
-import org.xpect.XpectTest;
-import org.xpect.expectation.TargetSyntaxSupport;
+import org.xpect.expectation.impl.TargetSyntaxSupport;
 import org.xpect.registry.ITestSuiteInfo;
 import org.xpect.runner.XpectTestFiles.Builder;
 import org.xpect.runner.XpectTestFiles.FileRoot;
 import org.xpect.setup.ISetupInitializer;
-import org.xpect.setup.SetupInitializer;
 import org.xpect.setup.ThisRootTestClass;
 import org.xpect.setup.ThisTestObject.TestObjectSetup;
 import org.xpect.setup.XpectSetupFactory;
@@ -90,9 +88,9 @@ public class XpectRunner extends ParentRunner<Runner> {
 	}
 
 	protected Configuration createChildConfiguration(XpectFile file) {
-		Configuration config = new Configuration();
+		Configuration config = new Configuration(file.eResource().getURI().lastSegment());
 		config.addDefaultValue(XpectFile.class, file);
-		config.addDefaultValue(ISetupInitializer.class, createSetupInitializer(file));
+		config.addDefaultValue(ISetupInitializer.class, file.createSetupInitializer());
 		return config;
 	}
 
@@ -104,7 +102,7 @@ public class XpectRunner extends ParentRunner<Runner> {
 	}
 
 	protected Configuration createRootConfiguration() {
-		Configuration config = new Configuration();
+		Configuration config = new Configuration("Root");
 		config.addDefaultValue(this);
 		config.addValue(ThisRootTestClass.class, super.getTestClass().getJavaClass());
 		config.addFactory(TestObjectSetup.class);
@@ -113,21 +111,13 @@ public class XpectRunner extends ParentRunner<Runner> {
 		config.addFactory(XpectFileRunner.class);
 		config.addFactory(XpectTestRunner.class);
 		config.addFactory(TestRunner.class);
+		config.addFactory(ArgumentContributor.class);
 		config.addDefaultValue(IXpectURIProvider.class, this.uriProvider);
 		config.addDefaultValue(XpectJavaModel.class, this.xpectJavaModel);
 		Iterable<XjmContribution> contributions = this.xpectJavaModel.getContributions(XpectSetupFactory.class, EnvironmentUtil.ENVIRONMENT);
 		for (XjmContribution contribution : contributions)
 			config.addFactory(contribution.getJavaClass());
 		return config;
-	}
-
-	protected ISetupInitializer<Object> createSetupInitializer(XpectFile file) {
-		if (file != null) {
-			XpectTest test = file.getTest();
-			if (test != null && !test.eIsProxy())
-				return new SetupInitializer<Object>(file.getTest());
-		}
-		return new ISetupInitializer.Null<Object>();
 	}
 
 	protected StateContainer createState(Configuration config) {

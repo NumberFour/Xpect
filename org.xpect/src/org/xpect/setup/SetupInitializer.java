@@ -97,16 +97,17 @@ public class SetupInitializer<T> implements ISetupInitializer<T> {
 			}
 		// Support for single Varargs: exactly one array-parameter in constructor.
 		START: for (Constructor<?> c : clazz.getConstructors())
-		if (c.getParameterTypes().length == 1) {
-			Class<?> aType = c.getParameterTypes()[0];
-			if( ! aType.isArray() ) continue START;
-			Class<?> cType = aType.getComponentType();
-			for (int i = 0; i < params.length; i++)
-				if (!cType.isInstance(params[i]))
+			if (c.getParameterTypes().length == 1) {
+				Class<?> aType = c.getParameterTypes()[0];
+				if (!aType.isArray())
 					continue START;
-			return c;
-		}
-		
+				Class<?> cType = aType.getComponentType();
+				for (int i = 0; i < params.length; i++)
+					if (!cType.isInstance(params[i]))
+						continue START;
+				return c;
+			}
+
 		throw new RuntimeException("Type " + clazz + " has no constructor suitable for params " + Joiner.on(", ").join(params));
 	}
 
