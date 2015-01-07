@@ -6,7 +6,7 @@
     <property name='p2.timestamp' value='1243822502499'/>
   </properties>
  <children size='2'>
-    <child location='http://meysholdt.github.com/eclipse_jdt_junit_runners/updatesite/'/>
+    <child location='http://meysholdt.github.io/eclipse_jdt_junit_runners/updatesite/'/>
     <child location='local'/>
   </children>
 </repository>
