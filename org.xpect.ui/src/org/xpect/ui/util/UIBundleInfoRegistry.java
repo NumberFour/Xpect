@@ -2,6 +2,7 @@ package org.xpect.ui.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -122,8 +123,10 @@ public class UIBundleInfoRegistry implements IBundleInfo.Registry {
 		try {
 			URL resource = clazz.getClassLoader().getResource("/" + clazz.getName().replace('.', '/') + ".class");
 			URL url = FileLocator.resolve(resource);
-			return URI.createURI(url.toString());
+			return URI.createURI(new java.net.URI(url.getProtocol(), url.getPath(), null).toString());
 		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
 	}
