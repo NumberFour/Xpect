@@ -239,6 +239,8 @@ public class XpectRunner extends ParentRunner<Runner> {
 			child.run(notifier);
 		} catch (Throwable t) {
 			notifier.fireTestFailure(new Failure(child.getDescription(), t));
+		} finally {
+			getState().invalidate();
 		}
 	}
 
