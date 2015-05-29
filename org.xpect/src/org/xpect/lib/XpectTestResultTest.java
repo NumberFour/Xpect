@@ -1,5 +1,9 @@
 package org.xpect.lib;
 
+import static com.google.common.cache.CacheBuilder.newBuilder;
+import static com.google.common.collect.Maps.newHashMap;
+import static java.lang.String.valueOf;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,12 +32,24 @@ import org.xpect.setup.XpectSetupFactory;
 import org.xpect.state.StateContainer;
 import org.xpect.text.IRegion;
 
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 @RunWith(XpectRunner.class)
 @XpectImport(ReflectiveXpectFileRunner.class)
 public class XpectTestResultTest {
+	
+	private static final LoadingCache<XpectFile, Map<String, XpectTestRunner>> REFLECTIVE_TO_INSPECTED = 
+			
+		newBuilder().build(new CacheLoader<XpectFile, Map<String, XpectTestRunner>>() {
+
+		@Override
+		public Map<String, XpectTestRunner> load(final XpectFile key) throws Exception {
+			return newHashMap();
+		}
+	});
+	
 	public static class FailureListener extends RunListener {
 		private Failure failure;
 
@@ -53,9 +69,8 @@ public class XpectTestResultTest {
 	}
 
 	@XpectSetupFactory
-	public final static class ReflectiveXpectFileRunner extends XpectFileRunner {
+	public static final class ReflectiveXpectFileRunner extends XpectFileRunner {
 
-		private final Map<XpectTestRunner, XpectTestRunner> reflectiveToInspected = Maps.newHashMap();
 
 		public ReflectiveXpectFileRunner(StateContainer state, XpectRunner runner, XpectFile file) {
 			super(state, runner, file);
@@ -73,8 +88,9 @@ public class XpectTestResultTest {
 						lastReflectives.add(testRunner);
 						filtered.add(runner);
 					} else if (!lastReflectives.isEmpty()) {
-						for (XpectTestRunner reflective : lastReflectives)
-							reflectiveToInspected.put(reflective, testRunner);
+						for (XpectTestRunner reflective : lastReflectives) {
+							REFLECTIVE_TO_INSPECTED.getUnchecked(getXpectFile()).put(valueOf(reflective), testRunner);
+						}
 						lastReflectives.clear();
 					} else {
 						filtered.add(runner);
@@ -84,10 +100,6 @@ public class XpectTestResultTest {
 				}
 			}
 			return filtered;
-		}
-
-		public Map<XpectTestRunner, XpectTestRunner> getReflectiveToInspected() {
-			return reflectiveToInspected;
 		}
 
 		protected boolean isReflectiveTest(XpectInvocation invocation) {
@@ -118,7 +130,8 @@ public class XpectTestResultTest {
 	@Xpect
 	public void testFailureDiff(@StringDiffExpectation IStringDiffExpectation expectation, XpectTestRunner runner) {
 		ReflectiveXpectFileRunner fileRunner = (ReflectiveXpectFileRunner) runner.getFileRunner();
-		XpectTestRunner inspected = fileRunner.getReflectiveToInspected().get(runner);
+		XpectTestRunner inspected = REFLECTIVE_TO_INSPECTED.getUnchecked(fileRunner.getXpectFile()).get(valueOf(runner));
+		REFLECTIVE_TO_INSPECTED.invalidate(valueOf(runner));
 		Failure failure = run(inspected);
 		Throwable exception = failure.getException();
 		if (exception instanceof ComparisonFailure) {
@@ -137,7 +150,8 @@ public class XpectTestResultTest {
 	@Xpect
 	public void testFailureMessage(@StringExpectation IStringExpectation expectation, XpectTestRunner runner) {
 		ReflectiveXpectFileRunner fileRunner = (ReflectiveXpectFileRunner) runner.getFileRunner();
-		XpectTestRunner inspected = fileRunner.getReflectiveToInspected().get(runner);
+		XpectTestRunner inspected = REFLECTIVE_TO_INSPECTED.getUnchecked(fileRunner.getXpectFile()).get(valueOf(runner));
+		REFLECTIVE_TO_INSPECTED.invalidate(valueOf(runner));
 		Failure failure = run(inspected);
 		expectation.assertEquals(failure.getMessage());
 	}
