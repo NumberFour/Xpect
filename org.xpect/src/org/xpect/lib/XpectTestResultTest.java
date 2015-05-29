@@ -1,9 +1,8 @@
 package org.xpect.lib;
 
-import static com.google.common.cache.CacheBuilder.newBuilder;
-import static com.google.common.collect.Maps.newHashMap;
 import static java.lang.String.valueOf;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,23 +31,27 @@ import org.xpect.setup.XpectSetupFactory;
 import org.xpect.state.StateContainer;
 import org.xpect.text.IRegion;
 
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 @RunWith(XpectRunner.class)
 @XpectImport(ReflectiveXpectFileRunner.class)
 public class XpectTestResultTest {
 	
-	private static final LoadingCache<XpectFile, Map<String, XpectTestRunner>> REFLECTIVE_TO_INSPECTED = 
-			
-		newBuilder().build(new CacheLoader<XpectFile, Map<String, XpectTestRunner>>() {
+	private static final class LocalCache {
+		
+		private final Map<XpectFile, Map<String, XpectTestRunner>> cache = new HashMap<XpectFile, Map<String,XpectTestRunner>>(); 
 
-		@Override
-		public Map<String, XpectTestRunner> load(final XpectFile key) throws Exception {
-			return newHashMap();
+		private Map<String, XpectTestRunner> getUnchecked(final XpectFile file) {
+			Map<String, XpectTestRunner> map = cache.get(file);
+			if (null == map) {
+				map = new HashMap<String, XpectTestRunner>();
+				cache.put(file, map);
+			}
+			return map;
 		}
-	});
+	}
+	
+	private static final LocalCache REFLECTIVE_TO_INSPECTED = new LocalCache();
 	
 	public static class FailureListener extends RunListener {
 		private Failure failure;
@@ -131,7 +134,6 @@ public class XpectTestResultTest {
 	public void testFailureDiff(@StringDiffExpectation IStringDiffExpectation expectation, XpectTestRunner runner) {
 		ReflectiveXpectFileRunner fileRunner = (ReflectiveXpectFileRunner) runner.getFileRunner();
 		XpectTestRunner inspected = REFLECTIVE_TO_INSPECTED.getUnchecked(fileRunner.getXpectFile()).get(valueOf(runner));
-		REFLECTIVE_TO_INSPECTED.invalidate(valueOf(runner));
 		Failure failure = run(inspected);
 		Throwable exception = failure.getException();
 		if (exception instanceof ComparisonFailure) {
@@ -151,7 +153,6 @@ public class XpectTestResultTest {
 	public void testFailureMessage(@StringExpectation IStringExpectation expectation, XpectTestRunner runner) {
 		ReflectiveXpectFileRunner fileRunner = (ReflectiveXpectFileRunner) runner.getFileRunner();
 		XpectTestRunner inspected = REFLECTIVE_TO_INSPECTED.getUnchecked(fileRunner.getXpectFile()).get(valueOf(runner));
-		REFLECTIVE_TO_INSPECTED.invalidate(valueOf(runner));
 		Failure failure = run(inspected);
 		expectation.assertEquals(failure.getMessage());
 	}
