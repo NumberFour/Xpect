@@ -1,0 +1,4 @@
+	XPECT_SETUP org.xpect.tests.runner.RunnerTest END_SETUP
+
+test passes: green
+XPECT expectedExpectation --> expectedExpectation

@@ -37,6 +37,13 @@ import com.google.common.collect.Lists;
 @XpectImport(ReflectiveXpectFileRunner.class)
 public class XpectTestResultTest {
 	
+	/**
+	 * After introducing the {@link StateContainer#invalidate()} invocation at {@link XpectRunner} for each child 
+	 * {@link Runner runner}  the {@link ReflectiveXpectFileRunner} state was lost. Instead of storing each 
+	 * {@link ReflectiveXpectFileRunner} instances (and their state) in memory for the whole test we store only their 
+	 * state in a static cache to ensure that the state container can be cleaned up. 
+	 * A test for the memory consumption issue can be found in the {@code org.xpect.tests.runner.memory} package.
+	 */
 	private static final class LocalCache {
 		
 		private final Map<XpectFile, Map<String, XpectTestRunner>> cache = new HashMap<XpectFile, Map<String,XpectTestRunner>>(); 
